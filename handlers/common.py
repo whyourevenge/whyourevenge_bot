@@ -13,14 +13,16 @@ common_router = Router()
 
 
 async def set_bot_commands(bot: Bot):
+    """
+    Створює меню команд у Telegram.
+    """
     commands = [
         BotCommand(command="start", description="🏁 Перезапустити бота"),
-        BotCommand(command="create_profile", description="📝 Створити анкету (через чат)"),  # Змінили опис
-        BotCommand(command="edit_profile", description="✏️ Редагувати свою анкету"),
-        BotCommand(command="my_profile", description="👤 Подивитись свою анкету"),
-        BotCommand(command="all_profiles", description="📋 Показати всі анкети"),
-        BotCommand(command="check_profile", description="👀 Перевірити анкету (reply або @username)"),
-        BotCommand(command="profile_card", description="🪪 Моя веб-анкета (створити/подивитись)"),  # Змінили опис
+        BotCommand(command="profile_card", description="🪪 Моя веб-анкета (створити/подивитись)"),
+        BotCommand(command="check_profile", description="👀 Відкрити веб-анкету іншого"),
+        BotCommand(command="all_profiles", description="📋 Показати список всіх анкет"),
+        BotCommand(command="edit_profile", description="✏️ Редагувати анкету (в чаті)"),
+        BotCommand(command="my_profile", description="👤 Подивитись анкету (в чаті)"),
         BotCommand(command="delete_profile", description="🗑️ Видалити свою анкету")
     ]
     await bot.set_my_commands(commands)
@@ -31,9 +33,11 @@ async def cmd_start(message: Message):
     await message.reply("Привіт! Щоб подивитись або створити свою анкету, використовуй команду /profile_card")
 
 
-# ... (код для /my_profile, /all_profiles, /edit_profile, колбеків та /check_profile залишається без змін) ...
 @common_router.message(Command("my_profile"))
 async def show_my_profile(message: Message, db: aiosqlite.Connection, bot: Bot):
+    """
+    Показує анкету користувача прямо в чаті.
+    """
     user_id = message.from_user.id
     async with db.execute("SELECT name, age, bio, photo_id FROM profiles WHERE user_id = ?", (user_id,)) as cursor:
         profile_data = await cursor.fetchone()
@@ -47,6 +51,9 @@ async def show_my_profile(message: Message, db: aiosqlite.Connection, bot: Bot):
 
 @common_router.message(Command("all_profiles"))
 async def show_all_profiles(message: Message, db: aiosqlite.Connection):
+    """
+    Показує текстовий список всіх анкет.
+    """
     if message.chat.type not in ('group', 'supergroup'):
         await message.reply("Цю команду можна використовувати тільки в групі.")
         return
@@ -64,6 +71,9 @@ async def show_all_profiles(message: Message, db: aiosqlite.Connection):
 
 @common_router.message(Command("edit_profile"))
 async def edit_profile(message: Message, db: aiosqlite.Connection, bot: Bot):
+    """
+    Запускає процес редагування анкети через чат.
+    """
     user_id = message.from_user.id
     async with db.execute("SELECT name, age, bio, photo_id FROM profiles WHERE user_id = ?", (user_id,)) as cursor:
         profile_data = await cursor.fetchone()
@@ -82,6 +92,9 @@ async def edit_profile(message: Message, db: aiosqlite.Connection, bot: Bot):
 
 @common_router.callback_query(F.data.startswith("edit_"))
 async def handle_edit_callback(callback: CallbackQuery, state: FSMContext, bot: Bot):
+    """
+    Обробляє натискання на інлайн-кнопки редагування.
+    """
     action = callback.data.split("_")[1]
     actions = {
         "name": (ProfileForm.editing_name, "Введи нове ім'я:"),
@@ -102,56 +115,70 @@ async def handle_edit_callback(callback: CallbackQuery, state: FSMContext, bot: 
 
 
 @common_router.message(Command("check_profile"))
-async def check_profile(message: Message, db: aiosqlite.Connection, bot: Bot):
+async def check_profile(message: Message, db: aiosqlite.Connection):
+    """
+    Надсилає кнопку для перегляду чужої анкети через Web App.
+    """
     if message.chat.type not in ('group', 'supergroup'):
         await message.reply("Цю команду потрібно використовувати у групі!")
         return
-    profile_data = None
-    username_to_check = ""
+
+    target_user_id = None
+    target_username = None
+
     if message.reply_to_message:
-        user_id = message.reply_to_message.from_user.id
-        username_to_check = message.reply_to_message.from_user.username or message.reply_to_message.from_user.first_name
-        async with db.execute("SELECT name, age, bio, photo_id FROM profiles WHERE user_id = ?", (user_id,)) as cursor:
-            profile_data = await cursor.fetchone()
+        target_user_id = message.reply_to_message.from_user.id
+        target_username = message.reply_to_message.from_user.username or message.reply_to_message.from_user.first_name
     else:
         parts = message.text.split()
         if len(parts) < 2:
             await message.reply("<b>Неправильне використання!</b>\n"
-                                "1. У відповідь (reply) на повідомлення.\n"
-                                "2. Написавши: `/check_profile @username`",
+                                "Використовуй у відповідь на повідомлення або напиши: `/check_profile @username`",
                                 parse_mode="HTML")
             return
-        username_to_check = parts[1].lstrip('@')
-        async with db.execute("SELECT name, age, bio, photo_id FROM profiles WHERE username = ?",
-                              (username_to_check,)) as cursor:
-            profile_data = await cursor.fetchone()
-    if profile_data:
-        name, age, bio, photo_id = profile_data
-        caption = f"Анкета <b>{username_to_check}</b>:\n<b>Ім'я:</b> {name}\n<b>Вік:</b> {age}\n<b>Про себе:</b> {bio}"
-        await bot.send_photo(chat_id=message.chat.id, photo=photo_id, caption=caption, parse_mode="HTML")
-    else:
-        await message.reply(f"У користувача <b>{username_to_check}</b> поки немає анкети.", parse_mode="HTML")
 
+        target_username = parts[1].lstrip('@')
+        async with db.execute("SELECT user_id FROM profiles WHERE username = ?", (target_username,)) as cursor:
+            result = await cursor.fetchone()
+            if result:
+                target_user_id = result[0]
 
-# 👈 ОСЬ ВИПРАВЛЕННЯ: Тепер ця функція ЗАВЖДИ надсилає кнопку
-@common_router.message(Command("profile_card"))
-async def show_profile_card(message: Message):
-    webapp_url = "https://whyourevenge.github.io/whyourevenge_bot/webapp/"  # ЗАМІНИ НА СВОЄ ПОСИЛАННЯ
+    if not target_user_id:
+        await message.reply(f"Не можу знайти анкету для <b>{target_username}</b>. Можливо, її не існує.",
+                            parse_mode="HTML")
+        return
+
+    webapp_url = f"https://whyourevenge.github.io/whyourevenge_bot/webapp/?user_id={target_user_id}"
 
     button = InlineKeyboardButton(
-        text="Відкрити мою анкету",
+        text=f"Дивитись анкету {target_username}",
         web_app=WebAppInfo(url=webapp_url)
     )
     keyboard = InlineKeyboardMarkup(inline_keyboard=[[button]])
 
+    await message.reply(f"Натисни кнопку, щоб відкрити веб-анкету <b>{target_username}</b>:", reply_markup=keyboard,
+                        parse_mode="HTML")
+
+
+@common_router.message(Command("profile_card"))
+async def show_profile_card(message: Message):
+    """
+    Надсилає кнопку для перегляду власної анкети через Web App.
+    """
+    webapp_url = "https://whyourevenge.github.io/whyourevenge_bot/webapp/"
+    button = InlineKeyboardButton(text="Відкрити мою анкету", web_app=WebAppInfo(url=webapp_url))
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[[button]])
     await message.reply(
-        "Натисни кнопку нижче, щоб відкрити, створити або відредагувати свою анкету:",
+        "Натисни кнопку, щоб відкрити, створити або відредагувати свою анкету:",
         reply_markup=keyboard
     )
 
 
 @common_router.message(Command("delete_profile"))
 async def delete_profile(message: Message, db: aiosqlite.Connection):
+    """
+    Видаляє анкету користувача.
+    """
     user_id = message.from_user.id
     async with db.execute("SELECT 1 FROM profiles WHERE user_id = ?", (user_id,)) as cursor:
         exists = await cursor.fetchone()
