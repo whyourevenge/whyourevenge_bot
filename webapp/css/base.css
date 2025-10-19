@@ -1,20 +1,21 @@
-/* Підключаємо сучасний шрифт з Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
 
 :root {
-    --bg-color: var(--tg-theme-secondary-bg-color, #f0f2f5);
+    --bg-gradient-start: #e7f0ff;
+    --bg-gradient-end: #ffffff;
     --card-bg: var(--tg-theme-bg-color, #ffffff);
-    --text-color: var(--tg-theme-text-color, #212529);
-    --hint-color: var(--tg-theme-hint-color, #6c757d);
-    --accent-color: var(--tg-theme-button-color, #007bff);
+    --text-color: var(--tg-theme-text-color, #1c1c1e);
+    --hint-color: var(--tg-theme-hint-color, #8a8a8e);
+    --accent-color: var(--tg-theme-button-color, #007aff);
     --accent-text-color: var(--tg-theme-button-text-color, #ffffff);
+    --shadow-color: rgba(0, 0, 0, 0.1);
 }
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     margin: 0;
     padding: 20px;
-    background-color: var(--bg-color);
+    background-image: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
     color: var(--text-color);
     display: flex;
     justify-content: center;
@@ -28,16 +29,17 @@ body {
     max-width: 380px;
     width: 100%;
     background-color: var(--card-bg);
-    border-radius: 24px;
-    padding: 25px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border-radius: 28px;
+    padding: 30px;
+    box-shadow: 0 10px 40px var(--shadow-color);
     box-sizing: border-box;
-    animation: fadeIn 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    /* Анімація появи */
+    opacity: 0;
+    transform: scale(0.95) translateY(20px);
+    animation: fadeIn 0.6s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
 }
 
-.hidden {
-    display: none !important;
-}
+.hidden { display: none !important; }
 
 #loader {
     font-size: 1.1em;
@@ -47,11 +49,10 @@ body {
 
 /* Ключові кадри для анімацій */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to   { opacity: 1; transform: translateY(0); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 @keyframes pulse {
     0%, 100% { opacity: 0.7; }
-    50%      { opacity: 1; }
+    50% { opacity: 1; }
 }
