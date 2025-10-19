@@ -1,5 +1,7 @@
 // https://viscously-unmeliorated-bibi.ngrok-free.dev
 
+// webapp/script.js
+
 document.addEventListener('DOMContentLoaded', function() {
     const tg = window.Telegram.WebApp;
     tg.expand();
@@ -29,61 +31,48 @@ document.addEventListener('DOMContentLoaded', function() {
         createPrompt.classList.remove('hidden');
     }
 
-    // 1. Намагаємось отримати анкету
+    // 👈 ЗМІНЕНО: Відправляємо initData як чистий текст
     fetch(GET_PROFILE_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ initData: tg.initData })
+        headers: { 'Content-Type': 'text/plain' }, // Змінили заголовок
+        body: tg.initData // Відправляємо рядок напряму
     })
     .then(response => {
-        // 👈 ОСЬ ВИПРАВЛЕННЯ: Спочатку перевіряємо статус
         if (response.status === 404) {
-            // Якщо анкети немає, показуємо кнопку створення
             showCreationPrompt();
-            // І зупиняємо подальшу обробку, кинувши контрольовану помилку
             throw new Error('Profile not found, showing creation form.');
         }
         if (!response.ok) {
-            // Для всіх інших помилок
-            throw new Error('Network response was not ok.');
+            throw new Error(`Network response was not ok, status: ${response.status}`);
         }
-        // Тільки якщо все добре (статус 200), перетворюємо відповідь у JSON
         return response.json();
     })
     .then(data => {
-        // Цей блок тепер виконається тільки для успішної відповіді
         showProfile(data);
     })
     .catch(error => {
-        // Ловимо помилки. Якщо це наша "контрольована" помилка - нічого не робимо.
-        if (error.message === 'Profile not found, showing creation form.') {
-            console.log('Profile not found, form is displayed.');
+        if (error.message.startsWith('Profile not found')) {
+            console.log(error.message);
         } else {
-            // Для реальних помилок мережі показуємо повідомлення
             console.error('Error fetching profile:', error);
             loader.textContent = 'Сталася помилка мережі. Спробуйте пізніше.';
         }
     });
 
-    // 2. Слухаємо клік на кнопку "Створити профіль" (код без змін)
     createButton.addEventListener('click', () => {
         createPrompt.classList.add('hidden');
         creationFormDiv.classList.remove('hidden');
     });
 
-    // 3. Слухаємо відправку форми (код без змін)
     form.addEventListener('submit', function(event) {
         event.preventDefault();
-
         const formData = new FormData();
         formData.append('initData', tg.initData);
         formData.append('name', document.getElementById('name-input').value);
         formData.append('age', document.getElementById('age-input').value);
         formData.append('bio', document.getElementById('bio-input').value);
         formData.append('photo', document.getElementById('photo-input').files[0]);
-
         tg.MainButton.showProgress();
-
         fetch(CREATE_PROFILE_URL, {
             method: 'POST',
             body: formData
@@ -92,9 +81,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             tg.MainButton.hideProgress();
             if (data.success) {
-                tg.showAlert('Твій профіль успішно створено!', () => {
-                    window.location.reload();
-                });
+                tg.showAlert('Твій профіль успішно створено!', () => { window.location.reload(); });
             } else {
                 tg.showAlert(data.message || 'Сталася помилка при створенні профілю.');
             }
