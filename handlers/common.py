@@ -2,7 +2,7 @@
 
 from aiogram import Router, Bot, F
 from aiogram.filters import CommandStart, Command
-from aiogram.types import Message, BotCommand, CallbackQuery
+from aiogram.types import Message, BotCommand, CallbackQuery, WebAppInfo
 from aiogram.fsm.context import FSMContext
 import aiosqlite
 
@@ -20,6 +20,8 @@ async def set_bot_commands(bot: Bot):
         BotCommand(command="my_profile", description="👤 Подивитись свою анкету"),
         BotCommand(command="all_profiles", description="📋 Показати всі анкети"),
         BotCommand(command="check_profile", description="👀 Перевірити анкету (reply або @username)"),  # Оновили опис
+        BotCommand(command="delete_profile", description="🗑️ Видалити свою анкету"),
+        BotCommand(command="profile_card", description="🪪 Відкрити веб-анкету"),  # 👈 НОВЕ
         BotCommand(command="delete_profile", description="🗑️ Видалити свою анкету")
     ]
     await bot.set_my_commands(commands)
@@ -29,6 +31,24 @@ async def set_bot_commands(bot: Bot):
 async def cmd_start(message: Message):
     await message.reply("Привіт! Я бот для анкет. Використовуй команду /create_profile, щоб почати.")
 
+@common_router.message(Command("profile_card"))
+async def show_profile_card(message: Message, db: aiosqlite.Connection):
+    user_id = message.from_user.id
+    async with db.execute("SELECT 1 FROM profiles WHERE user_id = ?", (user_id,)) as cursor:
+        exists = await cursor.fetchone()
+
+    if exists:
+        # ВАЖЛИВО: тут має бути твоє посилання з GitHub Pages
+        webapp_url = "https://whyourevenge.github.io/whyourevenge_bot/webapp/"
+
+        button = InlineKeyboardButton(
+            text="Відкрити мою анкету",
+            web_app=WebAppInfo(url=webapp_url)
+        )
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[[button]])
+        await message.reply("Натисни кнопку нижче, щоб відкрити свою веб-анкету:", reply_markup=keyboard)
+    else:
+        await message.reply("У тебе ще немає анкети. Спочатку створи її командою /create_profile.")
 
 @common_router.message(Command("my_profile"))
 async def show_my_profile(message: Message, db: aiosqlite.Connection, bot: Bot):
