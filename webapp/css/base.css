@@ -1,0 +1,57 @@
+/* Підключаємо сучасний шрифт з Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+
+:root {
+    --bg-color: var(--tg-theme-secondary-bg-color, #f0f2f5);
+    --card-bg: var(--tg-theme-bg-color, #ffffff);
+    --text-color: var(--tg-theme-text-color, #212529);
+    --hint-color: var(--tg-theme-hint-color, #6c757d);
+    --accent-color: var(--tg-theme-button-color, #007bff);
+    --accent-text-color: var(--tg-theme-button-text-color, #ffffff);
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.container {
+    max-width: 380px;
+    width: 100%;
+    background-color: var(--card-bg);
+    border-radius: 24px;
+    padding: 25px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+    animation: fadeIn 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.hidden {
+    display: none !important;
+}
+
+#loader {
+    font-size: 1.1em;
+    color: var(--hint-color);
+    animation: pulse 1.5s infinite ease-in-out;
+}
+
+/* Ключові кадри для анімацій */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.7; }
+    50%      { opacity: 1; }
+}

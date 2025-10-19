@@ -4,51 +4,55 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Моя Анкета</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/profile_card.css">
+    <link rel="stylesheet" href="css/form.css">
 </head>
 <body>
-    <div id="loader" class="loader">Завантаження...</div>
+    <div class="container">
+        <div id="loader" class="loader">Завантаження...</div>
 
-    <div id="profile-card" class="card hidden">
-        <img id="user-photo" src="" alt="User Photo">
-        <h1 id="user-name"></h1>
-        <p id="user-age"></p>
-        <div class="bio">
-            <h2>Про себе:</h2>
-            <p id="user-bio"></p>
+        <div id="profile-card" class="hidden">
+            <img id="user-photo" class="profile-photo" src="" alt="User Photo">
+            <h1 id="user-name" class="profile-name"></h1>
+            <p id="user-age" class="profile-age"></p>
+            <div class="profile-bio">
+                <p id="user-bio"></p>
+            </div>
+            <div id="like-section" class="like-section">
+                <button id="like-button" class="like-button">❤️</button>
+                <span id="like-counter" class="like-counter">0</span>
+            </div>
         </div>
-        <div id="like-section" class="like-section">
-            <button id="like-button" class="like-button">❤️</button>
-            <span id="like-counter">0</span>
+
+        <div id="create-prompt" class="hidden">
+            <h2>Створити анкету?</h2>
+            <p>У вас ще немає анкети. Створіть її, щоб ділитися з іншими!</p>
+            <button id="create-button" class="button-primary">Створити профіль</button>
         </div>
-    </div>
 
-    <div id="create-prompt" class="hidden">
-        <p>У вас ще немає анкети.</p>
-        <button id="create-button" class="button">Створити профіль</button>
-    </div>
-
-    <div id="creation-form" class="card hidden">
-        <h2>Створення анкети</h2>
-        <form id="form">
-            <div class="form-group">
-                <label for="name-input">Ваше ім'я:</label>
-                <input type="text" id="name-input" required>
-            </div>
-            <div class="form-group">
-                <label for="age-input">Ваш вік:</label>
-                <input type="number" id="age-input" required>
-            </div>
-            <div class="form-group">
-                <label for="bio-input">Розкажіть про себе:</label>
-                <textarea id="bio-input" rows="3" required></textarea>
-            </div>
-            <div class="form-group">
-                <label for="photo-input">Завантажте фото:</label>
-                <input type="file" id="photo-input" accept="image/*" required>
-            </div>
-            <button type="submit" class="button">Зберегти анкету</button>
-        </form>
+        <div id="creation-form" class="hidden">
+            <h2>Створення анкети</h2>
+            <form id="form">
+                <div class="form-group">
+                    <label for="name-input">Ваше ім'я</label>
+                    <input type="text" id="name-input" placeholder="Як до вас звертатись?" required>
+                </div>
+                <div class="form-group">
+                    <label for="age-input">Ваш вік</label>
+                    <input type="number" id="age-input" placeholder="Скільки вам років?" required>
+                </div>
+                <div class="form-group">
+                    <label for="bio-input">Про себе</label>
+                    <textarea id="bio-input" rows="3" placeholder="Розкажіть щось цікаве..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="photo-input">Ваше фото</label>
+                    <input type="file" id="photo-input" accept="image/*" required>
+                </div>
+                <button type="submit" class="button-submit">Зберегти анкету</button>
+            </form>
+        </div>
     </div>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
