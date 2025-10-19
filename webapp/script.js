@@ -12,15 +12,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const likeButton = document.getElementById('like-button');
     const likeCounter = document.getElementById('like-counter');
     
-    const GET_PROFILE_URL = 'https://viscously-unmeliorated-bibi.ngrok-free.dev/get_profile';    // 👈 ЗАМЕНИ НА СВОЙ NGROK АДРЕС
-    const LIKE_PROFILE_URL = 'https://viscously-unmeliorated-bibi.ngrok-free.dev/like_profile';   // 👈 И СЮДА ТОЖЕ
+    const GET_PROFILE_URL = 'https://viscously-unmeliorated-bibi.ngrok-free.dev/get_profile';
+    const LIKE_PROFILE_URL = 'https://viscously-unmeliorated-bibi.ngrok-free.dev/like_profile';
     const CREATE_PROFILE_URL = 'https://viscously-unmeliorated-bibi.ngrok-free.dev/create_profile';
 
-    let receiverId = null; 
-
-    // 👈 НОВОЕ: Читаем user_id из URL-параметра
-    const urlParams = new URLSearchParams(window.location.search);
-    const profileUserId = urlParams.get('user_id');
+    let receiverId = null;
 
     function showProfile(data) {
         receiverId = data.user_id;
@@ -43,30 +39,27 @@ document.addEventListener('DOMContentLoaded', function() {
         createPrompt.classList.remove('hidden');
     }
 
-    // 👈 ОБНОВЛЕНО: Отправляем на бекенд и ID пользователя для просмотра
-    const requestBody = {
-        initData: tg.initData
-    };
-    if (profileUserId) {
-        requestBody.profile_user_id = profileUserId;
-    }
-
     fetch(GET_PROFILE_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody)
+        headers: { 'Content-Type': 'text/plain' },
+        body: tg.initData
     })
     .then(response => {
         if (response.status === 404) {
             showCreationPrompt();
-            throw new Error('Profile not found');
+            throw new Error('Profile not found, showing creation form.');
         }
+        if (!response.ok) { throw new Error(`Network response was not ok, status: ${response.status}`); }
         return response.json();
     })
-    .then(data => {
-        if (data && !data.error) showProfile(data);
-    })
-    .catch(error => console.error(error.message));
+    .then(data => { showProfile(data); })
+    .catch(error => {
+        if (error.message.startsWith('Profile not found')) { console.log(error.message); } 
+        else {
+            console.error('Error fetching profile:', error);
+            loader.textContent = 'Сталася помилка мережі. Спробуйте пізніше.';
+        }
+    });
 
     likeButton.addEventListener('click', () => {
         if (!receiverId) return;
@@ -88,11 +81,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // ... (код для создания профиля остаётся без изменений)
     document.getElementById('create-button').addEventListener('click', () => {
         createPrompt.classList.add('hidden');
         creationFormDiv.classList.remove('hidden');
     });
+    
     form.addEventListener('submit', function(event) {
         event.preventDefault();
         const formData = new FormData();
@@ -107,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             tg.MainButton.hideProgress();
             if (data.success) {
-                tg.showAlert('Твой профиль успешно создан!', () => { window.location.reload(); });
+                tg.showAlert('Твій профіль успішно створено!', () => { window.location.reload(); });
             } else {
                 tg.showAlert(data.message || 'Ошибка при создании профиля.');
             }
