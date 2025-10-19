@@ -1,48 +1,108 @@
-// Коли сторінка повністю завантажилась
+// https://viscously-unmeliorated-bibi.ngrok-free.dev
+
 document.addEventListener('DOMContentLoaded', function() {
     const tg = window.Telegram.WebApp;
-    tg.expand(); // Розширюємо Web App на весь екран
+    tg.expand();
 
     const loader = document.getElementById('loader');
     const profileCard = document.getElementById('profile-card');
+    const createPrompt = document.getElementById('create-prompt');
+    const createButton = document.getElementById('create-button');
+    const creationFormDiv = document.getElementById('creation-form');
+    const form = document.getElementById('form');
 
-    // Адреса, на якій наш бот буде чекати запит
-    // ВАЖЛИВО: поки що це просто заглушка, ми замінимо її пізніше
-    const BACKEND_URL = 'https://viscously-unmeliorated-bibi.ngrok-free.dev/get_profile'; 
+    const GET_PROFILE_URL = 'https://viscously-unmeliorated-bibi.ngrok-free.dev/get_profile';    // 👈 НЕ ЗАБУДЬ ВСТАВИТИ СВОЮ NGROK АДРЕСУ
+    const CREATE_PROFILE_URL = 'https://viscously-unmeliorated-bibi.ngrok-free.dev/create_profile'; // 👈 І СЮДИ ТЕЖ
 
-    // Перевіряємо, чи є дані для ініціалізації
-    if (!tg.initData) {
-        loader.textContent = 'Помилка: Не вдалося отримати дані користувача. Будь ласка, запустіть з клієнта Telegram.';
-        return;
+    function showProfile(data) {
+        document.getElementById('user-photo').src = data.photo_url;
+        document.getElementById('user-name').textContent = data.name;
+        document.getElementById('user-age').textContent = `Вік: ${data.age}`;
+        document.getElementById('user-bio').textContent = data.bio;
+        loader.classList.add('hidden');
+        profileCard.classList.remove('hidden');
     }
 
-    // Відправляємо запит на наш бекенд (до бота)
-    fetch(BACKEND_URL, {
+    function showCreationPrompt() {
+        loader.classList.add('hidden');
+        profileCard.classList.add('hidden');
+        createPrompt.classList.remove('hidden');
+    }
+
+    // 1. Намагаємось отримати анкету
+    fetch(GET_PROFILE_URL, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        // Відправляємо дані, які Telegram надає для безпечної ідентифікації
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ initData: tg.initData })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            loader.textContent = data.message || 'Не вдалося завантажити профіль.';
-        } else {
-            // Якщо все добре, заповнюємо картку даними
-            document.getElementById('user-photo').src = data.photo_url;
-            document.getElementById('user-name').textContent = data.name;
-            document.getElementById('user-age').textContent = `Вік: ${data.age}`;
-            document.getElementById('user-bio').textContent = data.bio;
-            
-            // Ховаємо завантажувач і показуємо картку
-            loader.classList.add('hidden');
-            profileCard.classList.remove('hidden');
+    .then(response => {
+        // 👈 ОСЬ ВИПРАВЛЕННЯ: Спочатку перевіряємо статус
+        if (response.status === 404) {
+            // Якщо анкети немає, показуємо кнопку створення
+            showCreationPrompt();
+            // І зупиняємо подальшу обробку, кинувши контрольовану помилку
+            throw new Error('Profile not found, showing creation form.');
         }
+        if (!response.ok) {
+            // Для всіх інших помилок
+            throw new Error('Network response was not ok.');
+        }
+        // Тільки якщо все добре (статус 200), перетворюємо відповідь у JSON
+        return response.json();
+    })
+    .then(data => {
+        // Цей блок тепер виконається тільки для успішної відповіді
+        showProfile(data);
     })
     .catch(error => {
-        console.error('Error fetching profile:', error);
-        loader.textContent = 'Сталася помилка мережі. Спробуйте пізніше.';
+        // Ловимо помилки. Якщо це наша "контрольована" помилка - нічого не робимо.
+        if (error.message === 'Profile not found, showing creation form.') {
+            console.log('Profile not found, form is displayed.');
+        } else {
+            // Для реальних помилок мережі показуємо повідомлення
+            console.error('Error fetching profile:', error);
+            loader.textContent = 'Сталася помилка мережі. Спробуйте пізніше.';
+        }
+    });
+
+    // 2. Слухаємо клік на кнопку "Створити профіль" (код без змін)
+    createButton.addEventListener('click', () => {
+        createPrompt.classList.add('hidden');
+        creationFormDiv.classList.remove('hidden');
+    });
+
+    // 3. Слухаємо відправку форми (код без змін)
+    form.addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const formData = new FormData();
+        formData.append('initData', tg.initData);
+        formData.append('name', document.getElementById('name-input').value);
+        formData.append('age', document.getElementById('age-input').value);
+        formData.append('bio', document.getElementById('bio-input').value);
+        formData.append('photo', document.getElementById('photo-input').files[0]);
+
+        tg.MainButton.showProgress();
+
+        fetch(CREATE_PROFILE_URL, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            tg.MainButton.hideProgress();
+            if (data.success) {
+                tg.showAlert('Твій профіль успішно створено!', () => {
+                    window.location.reload();
+                });
+            } else {
+                tg.showAlert(data.message || 'Сталася помилка при створенні профілю.');
+            }
+        })
+        .catch(error => {
+            tg.MainButton.hideProgress();
+            console.error('Error creating profile:', error);
+            tg.showAlert('Сталася помилка мережі.');
+        });
     });
 });
