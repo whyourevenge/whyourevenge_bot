@@ -1,126 +1,263 @@
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    background-color: var(--tg-theme-bg-color, #f0f0f0);
-    color: var(--tg-theme-text-color, #222);
+    font-family: 'Inter', sans-serif; /* Сучасний шрифт */
     margin: 0;
-    padding: 20px;
+    padding: 0;
+    background: linear-gradient(135deg, #f0f2f5 0%, #e0e5ec 100%); /* М'який градієнтний фон */
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
+    color: #333;
+    overflow: hidden; /* Щоб уникнути скролу при анімаціях */
 }
-.card {
-    background-color: var(--tg-theme-secondary-bg-color, #fff);
-    border-radius: 15px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 350px;
-    text-align: center;
+
+/* Додаємо глобальні стилі для шрифту Inter */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+
+.container {
+    max-width: 400px;
+    width: 90%;
     padding: 25px;
-    box-sizing: border-box;
+    border-radius: 20px;
+    background-color: rgba(255, 255, 255, 0.9); /* Трохи прозорий білий фон */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* М'яка тінь */
+    text-align: center;
+    backdrop-filter: blur(10px); /* Ефект розмиття для "гласморфізму" */
+    border: 1px solid rgba(255, 255, 255, 0.3); /* Тонка рамка */
+    animation: fadeIn 0.8s ease-out; /* Анімація появи */
 }
-.card img {
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.hidden {
+    display: none !important;
+}
+
+#loader {
+    font-size: 1.2em;
+    color: #666;
+    animation: pulse 1.5s infinite ease-in-out; /* Анімація пульсації */
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Стилі для картки профілю */
+#profile-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.profile-photo {
     width: 120px;
     height: 120px;
     border-radius: 50%;
-    border: 4px solid var(--tg-theme-button-color, #3498db);
     object-fit: cover;
-    margin-bottom: 15px;
-}
-.card h1 {
-    margin: 0;
-    font-size: 24px;
-}
-.card p {
-    font-size: 16px;
-    color: var(--tg-theme-hint-color, #888);
-    margin: 5px 0 20px;
-}
-.bio {
-    text-align: left;
-    border-top: 1px solid var(--tg-theme-hint-color, #eee);
-    padding-top: 15px;
-}
-.bio h2 {
-    font-size: 14px;
-    color: var(--tg-theme-hint-color, #888);
-    margin: 0 0 5px;
-    text-transform: uppercase;
-}
-.bio p {
-    font-size: 16px;
-    color: var(--tg-theme-text-color, #222);
-    margin: 0;
-}
-.hidden {
-    display: none;
-}
-.loader {
-    font-size: 18px;
-    color: var(--tg-theme-hint-color, #888);
+    margin-bottom: 20px;
+    border: 4px solid #fff; /* Біла обводка фото */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease-out; /* Анімація при наведенні */
 }
 
-.button {
-    background-color: var(--tg-theme-button-color, #3498db);
-    color: var(--tg-theme-button-text-color, #fff);
+.profile-photo:hover {
+    transform: scale(1.05);
+}
+
+.profile-name {
+    font-size: 2em;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.profile-age {
+    font-size: 1.1em;
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.profile-bio {
+    font-size: 1em;
+    color: #555;
+    line-height: 1.5;
+    margin-bottom: 25px;
+    max-height: 100px; /* Обмеження висоти біо */
+    overflow-y: auto; /* Дозволяє скролити біо */
+    -webkit-overflow-scrolling: touch; /* Покращує скролінг на iOS */
+    padding: 0 10px;
+}
+
+/* Стилі для кнопки лайка */
+.like-section {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+#like-button {
+    background: linear-gradient(45deg, #ff6b6b, #ee5253); /* Градієнт для кнопки лайка */
+    color: white;
     border: none;
-    padding: 12px 20px;
-    border-radius: 8px;
-    font-size: 16px;
+    padding: 12px 25px;
+    border-radius: 15px;
+    font-size: 1.1em;
     cursor: pointer;
-    width: 100%;
-    margin-top: 10px;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+    transition: all 0.3s ease; /* Плавні переходи */
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#like-button:hover:not(:disabled) {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+}
+
+#like-button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+#like-button.liked {
+    background: #6c757d; /* Сірий колір, якщо вже лайкнуто */
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.like-icon {
+    font-size: 1.3em;
+}
+
+#like-counter {
+    font-size: 1.2em;
+    font-weight: 600;
+    color: #555;
+}
+
+/* Стилі для повідомлення про створення профілю */
+#create-prompt h2 {
+    color: #333;
+    margin-bottom: 15px;
+}
+
+#create-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 15px;
+    font-size: 1.1em;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+#create-button:hover {
+    background-color: #0056b3;
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+}
+
+/* Стилі для форми створення/редагування */
+#creation-form h2 {
+    color: #333;
+    margin-bottom: 20px;
 }
 
 .form-group {
+    margin-bottom: 18px;
     text-align: left;
-    margin-bottom: 15px;
-}
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 500;
-}
-.form-group input,
-.form-group textarea {
-    width: 100%;
-    padding: 10px;
-    box-sizing: border-box;
-    border-radius: 8px;
-    border: 1px solid var(--tg-theme-hint-color, #ccc);
-    background-color: var(--tg-theme-bg-color, #f0f0f0);
-    color: var(--tg-theme-text-color, #222);
 }
 
-.like-section {
-    margin-top: 20px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #555;
+    font-size: 0.95em;
 }
-.like-button {
-    background-color: #e0e0e0;
-    color: #fff;
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group textarea,
+.form-group input[type="file"] {
+    width: calc(100% - 20px); /* Враховуємо padding */
+    padding: 12px 10px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    font-size: 1em;
+    background-color: #f9f9f9;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.08); /* Внутрішня тінь */
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="number"]:focus,
+.form-group textarea:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+    outline: none;
+    background-color: #fff;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.form-group input[type="file"] {
+    padding: 5px; /* Менший padding для файлу */
+}
+
+.submit-button {
+    background: linear-gradient(45deg, #28a745, #218838); /* Зелений градієнт для кнопки submit */
+    color: white;
     border: none;
-    font-size: 24px;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
+    padding: 12px 30px;
+    border-radius: 15px;
+    font-size: 1.1em;
     cursor: pointer;
-    transition: all 0.2s ease;
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+    transition: all 0.3s ease;
+    width: 100%; /* На всю ширину */
+    margin-top: 15px;
 }
-.like-button:hover {
-    transform: scale(1.1);
+
+.submit-button:hover {
+    background: linear-gradient(45deg, #218838, #1e7e34);
+    transform: translateY(-3px) scale(1.01);
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.6);
 }
-.like-button.liked {
-    background-color: #e74c3c; /* Красный цвет для лайкнутой кнопки */
+
+/* Оновлення для головної кнопки Telegram WebApp */
+body.telegram-ready .main-button-hidden {
+    display: none !important;
 }
-.like-button:disabled {
-    cursor: not-allowed;
-    opacity: 0.7;
+
+body.telegram-ready .main-button-shown {
+    display: block !important;
 }
-#like-counter {
-    font-size: 18px;
-    font-weight: 500;
+
+/* Додаткові анімації */
+.profile-name, .profile-age, .profile-bio {
+    animation: slideInUp 0.6s ease-out forwards;
+    opacity: 0;
+}
+.profile-name { animation-delay: 0.1s; }
+.profile-age { animation-delay: 0.2s; }
+.profile-bio { animation-delay: 0.3s; }
+
+@keyframes slideInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
